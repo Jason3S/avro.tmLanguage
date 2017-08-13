@@ -1,0 +1,21 @@
+{
+  "name": "avro.tmlanguage",
+  "version": "1.0.0",
+  "description": "Avro IDL TextMate Language Definition",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jason3S/avro.tmLanguage.git"
+  },
+  "keywords": [
+    "Avro",
+    "tmlanguage"
+  ],
+  "author": "Jason Dent",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Jason3S/avro.tmLanguage/issues"
+  },
+  "homepage": "https://github.com/Jason3S/avro.tmLanguage#readme"
+}
