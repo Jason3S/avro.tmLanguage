@@ -1,0 +1,95 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Avro",
+	"foldingStartMarker": "({|\\()\\s*$",
+	"foldingStopMarker": "(}|\\))\\s*$",
+	"patterns": [
+		{"include": "#comments"},
+		{"include": "#import"},
+		{"include": "#declaration"},
+		{"include": "#decorators"},
+		{"include": "#strings"},
+		{"include": "#keywords"}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash",
+					"match": "([/][/].*)\\n"
+				},
+				{
+					"name": "comment.block",
+					"begin": "/\\*",
+					"end": "\\*/"
+				}
+			]
+		},
+		"decorators": {
+			"patterns": [
+				{
+					"match": "^\\s+(@)(\\w+)\\b",
+					"captures": {
+						"1": {"name":"keyword"},
+						"2": {"name":"entity.name.tag"}
+					}
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.struct.avro",
+					"match": "\\b(protocol|record)\\b"
+				},
+				{
+					"name": "keyword.control.avro",
+					"match": "(@namespace|@extends|@import)\\b"
+				},
+				{
+					"name": "storage.type",
+					"match": "\\b(string|int|union|map|null|boolean)\\b"
+				},
+				{
+					"name":"constant.language",
+					"match": "\\b(true|false)\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.avro",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.avro",
+					"match": "\\\\."
+				}
+			]
+		},
+		"import": {
+			"patterns": [
+				{
+					"match": "\\b(import)\\s+(idl|protocol|schema)\\s+([^;]+);",
+					"captures": {
+						"1": { "name": "keyword"},
+						"2": { "name": "keyword"},
+						"3": { "patterns": [{"include": "#strings"}]}
+					}
+				}
+			]
+		},
+		"declaration": {
+			"patterns": [
+				{
+					"match": "\\b(protocol|record)\\s+(\\w+)",
+					"captures": {
+						"1": { "name": "keyword.struct" },
+						"2": { "name": "entity.name.class" }
+					}
+				}
+			]
+		}
+	},
+	"scopeName": "source.avro"
+}
