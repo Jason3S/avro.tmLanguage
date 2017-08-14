@@ -1,6 +1,6 @@
 {
   "name": "avro.tmlanguage",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Avro IDL TextMate Language Definition",
   "scripts": {},
   "repository": {
