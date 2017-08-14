@@ -2,8 +2,7 @@
   "name": "avro.tmlanguage",
   "version": "1.0.0",
   "description": "Avro IDL TextMate Language Definition",
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Jason3S/avro.tmLanguage.git"

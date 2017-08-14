@@ -5,23 +5,54 @@
 	"foldingStopMarker": "(}|\\))\\s*$",
 	"patterns": [
 		{"include": "#comments"},
-		{"include": "#import"},
-		{"include": "#declaration"},
-		{"include": "#decorators"},
-		{"include": "#strings"},
-		{"include": "#keywords"}
+		{"include": "#protocol"}
 	],
 	"repository": {
+		"protocol": {
+			"patterns": [
+				{
+					"begin": "\\b(protocol)\\s+(\\w+)\\s*{",
+					"end": "}",
+					"beginCaptures": {
+						"1": {"name": "keyword.struct.avro"},
+						"2": {"name": "entity.name.class.avro"}
+					},
+					"patterns": [
+						{"include": "#contents"}
+					]
+				}
+			]
+		},
+		"contents": {
+			"patterns": [
+				{"include": "#declaration"},
+				{"include": "#comments"},
+				{"include": "#import"},
+				{"include": "#declaration"},
+				{"include": "#decorators"},
+				{"include": "#strings"},
+				{"include": "#union"},
+				{"include": "#collections"},
+				{"include": "#keywords"}
+			]
+		},
 		"comments": {
 			"patterns": [
 				{
-					"name": "comment.line.double-slash",
-					"match": "([/][/].*)\\n"
+					"begin": "//",
+					"beginCaptures": {
+						"0": {
+							"name": "punctuation.definition.comment.avro"
+						}
+					},
+					"end": "$",
+					"name": "comment.line.double-slash.avro"
 				},
 				{
-					"name": "comment.block",
+					"name": "comment.block.avro",
 					"begin": "/\\*",
-					"end": "\\*/"
+					"end": "\\*/",
+					"captures": {"0": {"name": "punctuation.definition.comment.avro"}}
 				}
 			]
 		},
@@ -30,8 +61,8 @@
 				{
 					"match": "^\\s+(@)(\\w+)\\b",
 					"captures": {
-						"1": {"name":"keyword"},
-						"2": {"name":"entity.name.tag"}
+						"1": {"name":"keyword.avro"},
+						"2": {"name":"entity.name.tag.avro"}
 					}
 				}
 			]
@@ -46,13 +77,18 @@
 					"name": "keyword.control.avro",
 					"match": "(@namespace|@extends|@import)\\b"
 				},
+				{ "include": "#types" },
 				{
-					"name": "storage.type",
-					"match": "\\b(string|int|union|map|null|boolean)\\b"
-				},
+					"name":"constant.language.avro",
+					"match": "\\b(true|false|null)\\b"
+				}
+			]
+		},
+		"types": {
+			"patterns": [
 				{
-					"name":"constant.language",
-					"match": "\\b(true|false)\\b"
+					"name": "storage.type.avro",
+					"match": "\\b(string|int|union|boolean|fixed|long|double|float|uint)\\b"
 				}
 			]
 		},
@@ -72,21 +108,55 @@
 				{
 					"match": "\\b(import)\\s+(idl|protocol|schema)\\s+([^;]+);",
 					"captures": {
-						"1": { "name": "keyword"},
-						"2": { "name": "keyword"},
+						"1": { "name": "keyword.avro"},
+						"2": { "name": "keyword.avro"},
 						"3": { "patterns": [{"include": "#strings"}]}
 					}
 				}
 			]
 		},
+
 		"declaration": {
 			"patterns": [
 				{
-					"match": "\\b(protocol|record)\\s+(\\w+)",
-					"captures": {
-						"1": { "name": "keyword.struct" },
-						"2": { "name": "entity.name.class" }
-					}
+					"begin": "\\b(record|enum|error)\\s+(\\w+)\\s*{",
+					"end": "}",
+					"beginCaptures": {
+						"1": { "name": "keyword.struct.avro" },
+						"2": { "name": "entity.name.class.avro" }
+					},
+					"patterns": [
+						{"include": "#contents"}
+					]
+				}
+			]
+		},
+		"union": {
+			"patterns": [
+				{
+					"begin": "\\b(union)\\s*{",
+					"end": "}",
+					"beginCaptures": {
+						"1": {"name":"keyword.struct.avro"}
+					},
+					"patterns": [
+						{"include": "#contents"}
+					]
+				}
+			]
+		},
+		"collections": {
+			"patterns": [
+				{
+					"begin": "\\b(array|map)\\s*<",
+					"end": ">",
+					"beginCaptures": {
+						"1": {"name":"storage.type.avro"}
+					},
+					"patterns": [
+						{"include": "#types"},
+						{"include": "#comments"}
+					]
 				}
 			]
 		}
