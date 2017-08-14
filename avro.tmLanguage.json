@@ -81,6 +81,10 @@
 				{
 					"name":"constant.language.avro",
 					"match": "\\b(true|false|null)\\b"
+				},
+				{
+					"name":"constant.language.abro",
+					"match": "\\b[A-Z][A-Z0-9_]*\\b"
 				}
 			]
 		},
