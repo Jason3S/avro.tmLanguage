@@ -16,5 +16,9 @@
   "bugs": {
     "url": "https://github.com/Jason3S/avro.tmLanguage/issues"
   },
-  "homepage": "https://github.com/Jason3S/avro.tmLanguage#readme"
+  "homepage": "https://github.com/Jason3S/avro.tmLanguage#readme",
+  "files": [
+    "avro.tmLanguage.json",
+    "avro-avsc-json-schema.json"
+  ]
 }

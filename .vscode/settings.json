@@ -1,0 +1,13 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "*.avsc"
+            ],
+            "url": "./avro-avsc-json-schema.json"
+        }
+    ],
+    "cSpell.words": [
+        "AVSC"
+    ]
+}
