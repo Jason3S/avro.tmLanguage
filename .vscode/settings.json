@@ -9,5 +9,7 @@
     ],
     "cSpell.words": [
         "AVSC"
-    ]
+    ],
+    "editor.formatOnSave": false,
+    "prettier.requireConfig": true
 }
