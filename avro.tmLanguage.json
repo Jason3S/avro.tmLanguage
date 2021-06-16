@@ -28,17 +28,20 @@
 		"contents": {
 			"patterns": [
 				{"include": "#decorators"},
-				{"include": "#function"},
 				{"include": "#record"},
 				{"include": "#error"},
 				{"include": "#declaration"},
 				{"include": "#comments"},
 				{"include": "#import"},
-				{"include": "#strings"},
 				{"include": "#union"},
-				{"include": "#collections"},
+				{"include": "#fixed"},
+				{"include": "#function"},
 				{"include": "#keywords"},
-				{"include": "#constants"}
+				{"include": "#strings"},
+				{"include": "#collections"},
+				{"include": "#throws"},
+				{"include": "#constants"},
+				{"include": "#declared_type"}
 			]
 		},
 		"comments": {
@@ -66,11 +69,22 @@
 			"patterns": [
 				{
 					"name": "meta.decorator",
-					"begin": "(@)([-\\w]+)\\s*\\(",
+					"begin": "(@[-\\w]+)\\s*\\(",
 					"end": "\\)",
 					"beginCaptures": {
-						"1": {"name":"keyword.avro"},
-						"2": {"name":"entity.name.tag.avro"}
+						"1": {
+							"name": "meta.decorator.name.avro",
+							"patterns": [
+								{
+									"name": "keyword.control.avro",
+									"match": "@(aliases|namespace|order)"
+								},
+								{
+									"name":"entity.name.tag.avro",
+									"match": "@[-\\w]+"
+								}
+							]
+						}
 					},
 					"contentName": "meta.decorator.avro",
 					"patterns": [{ "include": "#object"}]
@@ -84,8 +98,12 @@
 					"match": "\\b(protocol|record)\\b"
 				},
 				{
+					"name": "keyword.other.avro",
+					"match": "\\b(oneway)\\b"
+				},
+				{
 					"name": "keyword.control.avro",
-					"match": "(@namespace|@extends|@import|throws)\\b"
+					"match": "(@namespace|@extends|@import)\\b"
 				},
 				{ "include": "#types" },
 				{
@@ -110,23 +128,26 @@
 				},
 				{
 					"name":"constant.numeric.avro",
-					"match": "\\b[0-9]+(\\.[0-9]*)\\b"
+					"match": "\\b-?[0-9]+(\\.[0-9]*)?\\b"
 				}
 			]
 		},
 		"types": {
 			"patterns": [
+				{"include": "#union"},
+				{"include": "#decimal"},
+				{"include": "#collections"},
 				{
 					"name": "support.type.primitive.avro",
 					"match": "\\b(int|long|string|boolean|float|double|null|bytes)\\b"
 				},
 				{
 					"name": "support.type.logical.avro",
-					"match": "\\b(decimal|date|time_ms|timestamp_ms)\\b"
+					"match": "\\b(date|time_ms|timestamp_ms|uuid)\\b"
 				},
 				{
 					"name": "support.type.primitive.avro",
-					"match": "\\b(uint|fixed|void)\\b"
+					"match": "\\b(uint|void)\\b"
 				}
 			]
 		},
@@ -140,6 +161,57 @@
 					"match": "\\\\."
 				}
 			]
+		},
+		"fixed": {
+			"match": "\\b(fixed)\\b([^(]+)\\(([^)]+)\\)",
+			"captures": {
+				"1": {"name": "support.type.logical.avro"},
+				"2": {
+					"name": "meta.fixed.avro",
+					"patterns": [
+						{"include": "#comments"},
+						{"include": "#decorators"},
+						{
+							"match": "\\w+",
+							"name": "entity.name.type.avro"
+						}
+					]
+				},
+				"3": {
+					"name": "meta.fixed.length",
+					"patterns":[
+						{"include": "#comments"},
+						{
+							"name":"constant.numeric.avro",
+							"match": "\\b[0-9]+\\b"
+						}
+					]
+				}
+			}
+		},
+		"decimal": {
+			"match": "\\b(decimal)\\s*\\(([^)]+)\\)([^;]*)",
+			"captures": {
+				"1": {"name": "support.type.logical.avro" },
+				"2": {
+					"name": "meta.decimal.length",
+					"patterns":[
+						{"include": "#comments"},
+						{
+							"name":"constant.numeric.avro",
+							"match": "\\b[0-9]+\\b"
+						}
+					]
+				},
+				"3": {
+					"name": "meta.decimal.avro",
+					"patterns": [
+						{"include": "#comments"},
+						{"include": "#decorators"},
+						{"include": "#variable"}
+					]
+				}
+			}
 		},
 		"import": {
 			"patterns": [
@@ -162,8 +234,14 @@
 						"1": { "name": "keyword.struct.enum.avro" },
 						"2": { "name": "entity.name.type.avro" }
 					},
+					"contentName": "meta.enum.declaration.avro",
 					"patterns": [
-						{"include": "#contents"}
+						{"include": "#comments"},
+						{"include": "#decorators"},
+						{
+							"name": "variable.other.enummember.avro",
+							"match": "\\b\\w+\\b"
+						}
 					]
 				}
 			]
@@ -171,7 +249,7 @@
 		"record": {
 			"patterns": [
 				{
-					"begin": "\\b(record)\\s+(\\w*)\\s*{",
+					"begin": "\\b(record)\\s+(\\w+)\\s*{",
 					"end": "}",
 					"beginCaptures": {
 						"1": { "name": "keyword.struct.record.avro" },
@@ -238,8 +316,6 @@
 			"begin": "(?=(?:map|array|union|int|long|string|boolean|float|double|null|bytes|decimal|date|time_ms|timestamp_ms))",
 			"end": "(?=;)",
 			"patterns": [
-				{"include": "#union"},
-				{"include": "#collections"},
 				{"include": "#types"},
 				{"include": "#decorators"},
 				{"include": "#variable"},
@@ -267,10 +343,16 @@
 					},
 					"contentName": "meta.type.union.avro",
 					"patterns": [
-						{"include": "#contents"}
+						{"include": "#comments"},
+						{"include": "#types"},
+						{"include": "#declared_type"}
 					]
 				}
 			]
+		},
+		"declared_type": {
+			"name": "entity.name.type",
+			"match": "\\w+"
 		},
 		"collections": {
 			"name": "meta.collection",
@@ -286,11 +368,23 @@
 						{"include": "#types"},
 						{"include": "#comments"},
 						{"include": "#decorators"},
-						{
-							"name": "entity.name.type",
-							"match": "\\w+"
-						}
+						{"include": "#declared_type"}
 					]
+				}
+			]
+		},
+		"throws": {
+			"name": "meta.throws",
+			"begin": "\\bthrows\\b",
+			"beginCaptures": {
+				"0": {"name": "keyword.control.avro"}
+			},
+			"end": "(?=;)",
+			"patterns": [
+				{"include": "#comments"},
+				{
+					"name": "entity.name.type.avro",
+					"match": "\\b\\w+\\b"
 				}
 			]
 		},
@@ -309,18 +403,32 @@
 			"begin": "(?!=\\))",
 			"end": ",|(?=\\))",
 			"patterns": [
-				{"include": "#union"},
-				{"include": "#collections"},
-				{"include": "#types"},
-				{"include": "#decorators"},
-				{"include": "#variable"},
+				{
+					"begin": "\\w+",
+					"beginCaptures": {
+						"0": {
+							"name": "meta.function.param.type",
+							"patterns": [
+								{"include": "#types"},
+								{"include": "#declared_type"}
+							]
+						}
+					},
+					"end": ",|(?=\\))",
+					"patterns": [
+						{"include": "#decorators"},
+						{"include": "#variable"},
+						{"include": "#comments"},
+						{"include": "#function_param_default_value"}
+							]
+				},
 				{"include": "#comments"},
-				{"include": "#function_param_default_value"}
+				{"include": "#decorators"}
 			]
 		},
 		"function": {
 			"name": "meta.function",
-			"begin": "\\b([\\w`]+)\\(",
+			"begin": "\\b([\\w`]+)\\s*\\(",
 			"end": "\\)",
 			"contentName": "meta.function.parameters.avro",
 			"beginCaptures": {
