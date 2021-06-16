@@ -8,6 +8,11 @@
         }
     ],
     "cSpell.words": [
-        "AVSC"
-    ]
+        "AVSC",
+        "struct",
+        "oneway",
+        "enummember"
+    ],
+    "editor.formatOnSave": false,
+    "prettier.requireConfig": true
 }

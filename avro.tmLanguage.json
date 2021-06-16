@@ -20,7 +20,6 @@
 						"2": {"name": "entity.name.type.avro"}
 					},
 					"patterns": [
-						{"include": "#record"},
 						{"include": "#contents"}
 					]
 				}
@@ -28,20 +27,25 @@
 		},
 		"contents": {
 			"patterns": [
+				{"include": "#decorators"},
 				{"include": "#record"},
+				{"include": "#error"},
 				{"include": "#declaration"},
 				{"include": "#comments"},
 				{"include": "#import"},
-				{"include": "#declaration"},
-				{"include": "#decorators"},
-				{"include": "#strings"},
 				{"include": "#union"},
-				{"include": "#collections"},
+				{"include": "#fixed"},
+				{"include": "#function"},
 				{"include": "#keywords"},
-				{"include": "#constants"}
+				{"include": "#strings"},
+				{"include": "#collections"},
+				{"include": "#throws"},
+				{"include": "#constants"},
+				{"include": "#declared_type"}
 			]
 		},
 		"comments": {
+			"name": "meta.comments",
 			"patterns": [
 				{
 					"begin": "//",
@@ -64,12 +68,25 @@
 		"decorators": {
 			"patterns": [
 				{
-					"begin": "^\\s*(@)(\\w+)\\s*\\(",
+					"name": "meta.decorator",
+					"begin": "(@[-\\w]+)\\s*\\(",
 					"end": "\\)",
 					"beginCaptures": {
-						"1": {"name":"keyword.avro"},
-						"2": {"name":"entity.name.tag.avro"}
+						"1": {
+							"name": "meta.decorator.name.avro",
+							"patterns": [
+								{
+									"name": "keyword.control.avro",
+									"match": "@(aliases|namespace|order)"
+								},
+								{
+									"name":"entity.name.tag.avro",
+									"match": "@[-\\w]+"
+								}
+							]
+						}
 					},
+					"contentName": "meta.decorator.avro",
 					"patterns": [{ "include": "#object"}]
 				}
 			]
@@ -81,6 +98,10 @@
 					"match": "\\b(protocol|record)\\b"
 				},
 				{
+					"name": "keyword.other.avro",
+					"match": "\\b(oneway)\\b"
+				},
+				{
 					"name": "keyword.control.avro",
 					"match": "(@namespace|@extends|@import)\\b"
 				},
@@ -90,7 +111,7 @@
 					"match": "\\b(true|false|null)\\b"
 				},
 				{
-					"name":"constant.language.abro",
+					"name":"constant.language.avro",
 					"match": "\\b[A-Z][A-Z0-9_]*\\b"
 				}
 			]
@@ -107,15 +128,26 @@
 				},
 				{
 					"name":"constant.numeric.avro",
-					"match": "\\b[0-9]+(\\.[0-9]*)\\b"
+					"match": "\\b-?[0-9]+(\\.[0-9]*)?\\b"
 				}
 			]
 		},
 		"types": {
 			"patterns": [
+				{"include": "#union"},
+				{"include": "#decimal"},
+				{"include": "#collections"},
 				{
-					"name": "storage.type.avro",
-					"match": "\\b(string|int|union|boolean|fixed|long|double|float|uint)\\b"
+					"name": "support.type.primitive.avro",
+					"match": "\\b(int|long|string|boolean|float|double|null|bytes)\\b"
+				},
+				{
+					"name": "support.type.logical.avro",
+					"match": "\\b(date|time_ms|timestamp_ms|uuid)\\b"
+				},
+				{
+					"name": "support.type.primitive.avro",
+					"match": "\\b(uint|void)\\b"
 				}
 			]
 		},
@@ -129,6 +161,57 @@
 					"match": "\\\\."
 				}
 			]
+		},
+		"fixed": {
+			"match": "\\b(fixed)\\b([^(]+)\\(([^)]+)\\)",
+			"captures": {
+				"1": {"name": "support.type.logical.avro"},
+				"2": {
+					"name": "meta.fixed.avro",
+					"patterns": [
+						{"include": "#comments"},
+						{"include": "#decorators"},
+						{
+							"match": "\\w+",
+							"name": "entity.name.type.avro"
+						}
+					]
+				},
+				"3": {
+					"name": "meta.fixed.length",
+					"patterns":[
+						{"include": "#comments"},
+						{
+							"name":"constant.numeric.avro",
+							"match": "\\b[0-9]+\\b"
+						}
+					]
+				}
+			}
+		},
+		"decimal": {
+			"match": "\\b(decimal)\\s*\\(([^)]+)\\)([^;]*)",
+			"captures": {
+				"1": {"name": "support.type.logical.avro" },
+				"2": {
+					"name": "meta.decimal.length",
+					"patterns":[
+						{"include": "#comments"},
+						{
+							"name":"constant.numeric.avro",
+							"match": "\\b[0-9]+\\b"
+						}
+					]
+				},
+				"3": {
+					"name": "meta.decimal.avro",
+					"patterns": [
+						{"include": "#comments"},
+						{"include": "#decorators"},
+						{"include": "#variable"}
+					]
+				}
+			}
 		},
 		"import": {
 			"patterns": [
@@ -145,14 +228,20 @@
 		"declaration": {
 			"patterns": [
 				{
-					"begin": "\\b(enum|error)\\s+(\\w+)\\s*{",
+					"begin": "\\b(enum)\\s+(\\w+)\\s*{",
 					"end": "}",
 					"beginCaptures": {
-						"1": { "name": "keyword.struct.avro" },
+						"1": { "name": "keyword.struct.enum.avro" },
 						"2": { "name": "entity.name.type.avro" }
 					},
+					"contentName": "meta.enum.declaration.avro",
 					"patterns": [
-						{"include": "#contents"}
+						{"include": "#comments"},
+						{"include": "#decorators"},
+						{
+							"name": "variable.other.enummember.avro",
+							"match": "\\b\\w+\\b"
+						}
 					]
 				}
 			]
@@ -160,14 +249,31 @@
 		"record": {
 			"patterns": [
 				{
-					"begin": "\\b(record)\\s+(\\w*)\\s*{",
+					"begin": "\\b(record)\\s+(\\w+)\\s*{",
 					"end": "}",
 					"beginCaptures": {
-						"1": { "name": "keyword.struct.avro" },
+						"1": { "name": "keyword.struct.record.avro" },
 						"2": { "name": "entity.name.type.avro" }
 					},
+					"contentName": "meta.record.avro",
 					"patterns": [
-						{"include": "#record"},
+						{"include": "#comments"},
+						{"include": "#field"}
+					]
+				}
+			]
+		},
+		"error": {
+			"patterns": [
+				{
+					"begin": "\\b(error)\\s+(\\w*)\\s*{",
+					"end": "}",
+					"beginCaptures": {
+						"1": { "name": "keyword.struct.error.avro" },
+						"2": { "name": "entity.name.type.avro" }
+					},
+					"contentName": "meta.error.avro",
+					"patterns": [
 						{"include": "#comments"},
 						{"include": "#decorators"},
 						{"include": "#field"}
@@ -175,31 +281,56 @@
 				}
 			]
 		},
-		"field": {
+		"variable":{
+			"match": "(`?)(\\w+)(`?)",
+			"captures": {
+				"1": { "name": "variable.name.escape.avro" },
+				"2": { "name": "variable.name.avro" },
+				"3": { "name": "variable.name.escape.avro" }
+			}
+		},
+		"field_default_value": {
+			"name": "meta.default.avro",
+			"begin": "=",
+			"end": "(?=;)",
 			"patterns": [
-				{
-					"begin": "\\S+",
-					"end": "\\b(\\w+)\\s*(?:=\\s*(.*))?;",
-					"beginCaptures": {
-						"0": {"patterns": [
-							{"include": "#types"},
-							{"include": "#record"},
-							{"match": "\\w+", "name": "entity.name.type"}
-						]}
-					},
-					"endCaptures": {
-						"1": {"name":"variable.name"},
-						"2": {"patterns": [
-							{"include": "#strings"},
-							{"include": "#object"},
-							{"include": "#constants"}
-						]}
-					},
-					"patterns": [
-						{"include": "#decorators"},
-						{"include": "#comments"}
-					]
-				}
+				{"include": "#strings"},
+				{"include": "#object"},
+				{"include": "#constants"}
+			]
+		},
+		"field_user_type_entry": {
+			"name": "meta.field.user.avro",
+			"begin": "\\b\\w+",
+			"beginCaptures": { "0": { "name": "entity.name.type.avro"}},
+			"end": "(?=;)",
+			"patterns": [
+				{"include": "#decorators"},
+				{"include": "#variable"},
+				{"include": "#comments"},
+				{"include": "#field_default_value"}
+			]
+		},
+		"field_base_type_entry": {
+			"name": "meta.field.base.avro",
+			"begin": "(?=(?:map|array|union|int|long|string|boolean|float|double|null|bytes|decimal|date|time_ms|timestamp_ms))",
+			"end": "(?=;)",
+			"patterns": [
+				{"include": "#types"},
+				{"include": "#decorators"},
+				{"include": "#variable"},
+				{"include": "#comments"},
+				{"include": "#field_default_value"}
+			]
+		},
+		"field": {
+			"name": "meta.field",
+			"begin": "(?=\\S)",
+			"end": ";",
+			"patterns": [
+				{"include": "#decorators"},
+				{"include": "#field_base_type_entry"},
+				{"include": "#field_user_type_entry"}
 			]
 		},
 		"union": {
@@ -208,31 +339,109 @@
 					"begin": "\\b(union)\\s*{",
 					"end": "}",
 					"beginCaptures": {
-						"1": {"name":"keyword.struct.avro"}
+						"1": {"name":"keyword.struct.union.avro"}
 					},
+					"contentName": "meta.type.union.avro",
 					"patterns": [
-						{"include": "#contents"}
+						{"include": "#comments"},
+						{"include": "#types"},
+						{"include": "#declared_type"}
 					]
 				}
 			]
 		},
+		"declared_type": {
+			"name": "entity.name.type",
+			"match": "\\w+"
+		},
 		"collections": {
+			"name": "meta.collection",
 			"patterns": [
 				{
 					"begin": "\\b(array|map)\\s*<",
 					"end": ">",
 					"beginCaptures": {
-						"1": {"name":"storage.type.avro"}
+						"1": {"name":"storage.type.collection.avro"}
 					},
+					"contentName": "meta.type.collection.avro",
 					"patterns": [
 						{"include": "#types"},
 						{"include": "#comments"},
-						{
-							"name": "entity.name.type",
-							"match": "\\w+"
-						}
+						{"include": "#decorators"},
+						{"include": "#declared_type"}
 					]
 				}
+			]
+		},
+		"throws": {
+			"name": "meta.throws",
+			"begin": "\\bthrows\\b",
+			"beginCaptures": {
+				"0": {"name": "keyword.control.avro"}
+			},
+			"end": "(?=;)",
+			"patterns": [
+				{"include": "#comments"},
+				{
+					"name": "entity.name.type.avro",
+					"match": "\\b\\w+\\b"
+				}
+			]
+		},
+		"function_param_default_value": {
+			"name": "meta.default.avro",
+			"begin": "=",
+			"end": "(?=[,)])",
+			"patterns": [
+				{"include": "#strings"},
+				{"include": "#object"},
+				{"include": "#constants"}
+			]
+		},
+		"function_param": {
+			"name": "meta.function.param",
+			"begin": "(?!=\\))",
+			"end": ",|(?=\\))",
+			"patterns": [
+				{
+					"begin": "\\w+",
+					"beginCaptures": {
+						"0": {
+							"name": "meta.function.param.type",
+							"patterns": [
+								{"include": "#types"},
+								{"include": "#declared_type"}
+							]
+						}
+					},
+					"end": ",|(?=\\))",
+					"patterns": [
+						{"include": "#decorators"},
+						{"include": "#variable"},
+						{"include": "#comments"},
+						{"include": "#function_param_default_value"}
+							]
+				},
+				{"include": "#comments"},
+				{"include": "#decorators"}
+			]
+		},
+		"function": {
+			"name": "meta.function",
+			"begin": "\\b([\\w`]+)\\s*\\(",
+			"end": "\\)",
+			"contentName": "meta.function.parameters.avro",
+			"beginCaptures": {
+				"1": {
+					"name": "meta.function.name.avro",
+					"patterns": [{
+						"name":"entity.name.function.avro",
+						"match": "\\w+"
+					}]
+				}
+			},
+			"patterns": [
+				{"include": "#function_param"}
 			]
 		},
 		"object": {
